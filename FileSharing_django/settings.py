@@ -30,7 +30,7 @@ ALLOWED_HOSTS = []
 
 EXTERNAL_APP = [
     
-    'FileSharing_djano'
+    'FileSharing_django'
 
 ]
 
