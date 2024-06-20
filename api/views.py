@@ -7,6 +7,8 @@ from django.utils.crypto import get_random_string
 from .models import CustomUser, UploadedFile
 from .serializers import CustomUserSerializer, UploadedFileSerializer
 from django.core.signing import Signer
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class SignUpView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -14,8 +16,10 @@ class SignUpView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
+        user.set_password(serializer.validated_data['password'])  # Ensure password is hashed
         verification_code = get_random_string(length=6)
         user.verification_code = verification_code
+        user.is_active = False  # Initially set the user to inactive
         user.save()
         send_mail(
             'Verify your email',
@@ -38,10 +42,25 @@ class VerifyEmailView(APIView):
         except CustomUser.DoesNotExist:
             return Response({'message': 'Invalid code or email'}, status=status.HTTP_400_BAD_REQUEST)
 
-class LoginView(generics.GenericAPIView):
-    pass
-    # Implement login logic
-
+class LoginView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        user = authenticate(username=username, password=password)
+        
+        if user is not None:
+            if user.is_active:
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Account is inactive'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+        
 class UploadFileView(generics.CreateAPIView):
     queryset = UploadedFile.objects.all()
     serializer_class = UploadedFileSerializer
