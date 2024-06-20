@@ -18,7 +18,7 @@ class LoginView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        # sourcery skip: remove-unnecessary-else, swap-if-else-branches
+        
         username = request.data.get('username')
         password = request.data.get('password')
         user = authenticate(request, username=username, password=password)
@@ -58,7 +58,7 @@ class FileDownloadView(APIView):
     permission_classes = [permissions.IsAuthenticated,]
 
     def get(self, request, file_id, *args, **kwargs):
-        # sourcery skip: raise-from-previous-error
+        
         try:
             file = File.objects.get(id=file_id, user=request.user)
         except File.DoesNotExist:
