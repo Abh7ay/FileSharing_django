@@ -8,9 +8,8 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        # sourcery skip: inline-immediately-returned-variable
-        user = User.objects.create_user(**validated_data)
-        return user
+
+        return User.objects.create_user(**validated_data)
 
 class FileSerializer(serializers.ModelSerializer):
     class Meta:
