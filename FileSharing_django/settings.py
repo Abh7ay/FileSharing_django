@@ -28,7 +28,11 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-# Application definition
+EXTERNAL_APP = [
+    
+    'FileSharing_djano'
+
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
