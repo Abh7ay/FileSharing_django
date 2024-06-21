@@ -1,4 +1,3 @@
-
 from django.contrib.auth import authenticate
 from django.http import FileResponse, Http404
 from rest_framework import generics, permissions, status
@@ -8,11 +7,11 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.tokens import RefreshToken
 import mimetypes
 
-from .models import User, File
+from .models import CustomUser, UploadedFile
 from .serializers import UserSerializer, FileSerializer
 
 class UserSignUpView(generics.CreateAPIView):
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
 class LoginView(APIView):
@@ -33,7 +32,7 @@ class LoginView(APIView):
         })
 
 class FileUploadView(generics.CreateAPIView):
-    queryset = File.objects.all()
+    queryset = UploadedFile.objects.all()
     serializer_class = FileSerializer
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [permissions.IsAuthenticated,]
@@ -46,16 +45,19 @@ class FileListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated,]
 
     def get_queryset(self):
-        return File.objects.filter(user=self.request.user)
+        return UploadedFile.objects.filter(user=self.request.user)
 
 class FileDownloadView(APIView):
     permission_classes = [permissions.IsAuthenticated,]
 
     def get(self, request, file_id, *args, **kwargs):
         try:
-            file = File.objects.get(id=file_id, user=request.user)
-        except File.DoesNotExist:
+            file = UploadedFile.objects.get(id=file_id, user=request.user)
+        except UploadedFile.DoesNotExist:
             raise Http404("File not found")
 
         file_handle = file.file.open()
-        file
+        file_mimetype, _ = mimetypes.guess_type(file.file.path)
+        response = FileResponse(file_handle, content_type=file_mimetype)
+        response['Content-Disposition'] = f'attachment; filename="{file.file.name}"'
+        return response
