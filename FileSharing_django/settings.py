@@ -162,3 +162,9 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
 }
+
+
+AUTHENTICATION_BACKENDS = (
+    'api.backends.EmailBackend',  # Make sure to use the correct import path for your EmailBackend
+    'django.contrib.auth.backends.ModelBackend',
+)
